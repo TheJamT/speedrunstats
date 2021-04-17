@@ -26,7 +26,7 @@ if __name__ == "__main__":
   event_handler.on_created = createFile
   event_handler.on_modified = createFile
 
-  path = '../minecraft/world/stats/'
+  path = '~/minecraft/world/stats/'
   observer = Observer()
   observer.schedule(event_handler, path)
 
