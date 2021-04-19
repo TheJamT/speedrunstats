@@ -4,12 +4,19 @@ import os
 from pymongo import MongoClient
 import requests
 from datetime import datetime
+import pandas as pd
+import matplotlib as plt
+import json
 
 client = MongoClient("mongodb://localhost:27017/")
 
 STAT_CATEGORY = "custom"  # eg: mined
 STAT_NAME = "deaths"  # eg: stone
-DATE = "080421"  # ddmmyy
+DATE = "170421"  # ddmmyy
+SPEEDRUN_NO = 8
+TITLE = "Total Walked" or f'{STAT_CATEGORY} {STAT_NAME}'
+
+IGNORE_SPECTATORS = ['Daruksprotection']
 
 results = {}
 usernames = []
@@ -48,70 +55,36 @@ for user in users:
     if user == "system.views":
         continue
 
+
     getUsernameRequest = requests.get(
         f"https://playerdb.co/api/player/minecraft/{user}"
     )
     usernameRequestJSON = getUsernameRequest.json()
     username = usernameRequestJSON["data"]["player"]["username"]
+
+    if username in IGNORE_SPECTATORS:
+        continue
+
     usernames.append(username)
 
     result = client[f"speedrun-{DATE}"][user].aggregate(getAggregateFunction())
-
     result = list(result)
 
-    results[username] = []
+    results[username] = {}
 
     for resultItem in result:
         try:
-            results[username].append(
-                {"time": resultItem["_id"], "stat": resultItem["total"]}
-            )
+            results[username][str(resultItem["_id"])] = resultItem["total"]
         except:
-            results[username].append({"time": resultItem["_id"], "stat": 0})
+            results[username][str(resultItem["_id"])] = 0
 
-    # for resultItem in result:
-    #     if resultItem["_id"] not in results:
-    #         results[str(resultItem["_id"])] = {}
-    #     try:
-    #         results[str(resultItem["_id"])][username] = resultItem["total"]
-    #     except:
-    #         results[str(resultItem["_id"])][username] = 0
+dataTable = pd.read_json(json.dumps(results)).sort_index().interpolate('time')
 
+dataTable.to_csv('test2.csv')
 
-# firstTime = sorted(results)[0]
-
-# if not os.path.exists(f"output/{DATE}"):
-#     os.makedirs(f"output/{DATE}")
-
-# with open(
-#     f"output/{DATE}/{STAT_CATEGORY}-{STAT_NAME or 'total'}.csv", "w"
-# ) as outputFile:
-#     output = "duration,"
-#     lastDataPoint = {}
-#     for username in usernames:
-#         output += f"{username},"
-#         # lastDataPoint[username] = 0
-#     output = output[:-1] + "\n"
-
-#     for result in sorted(results):
-#         timeDifference = round((datetime.strptime(result, '%Y-%m-%d %H:%M:%S') - datetime.strptime(firstTime, '%Y-%m-%d %H:%M:%S')).total_seconds() / 60.0, 1)
-#         output += f"{timeDifference},"
-
-#         for username in usernames:
-#             try:
-#                 dataPoint = results[result][username]
-#                 output += f"{dataPoint},"
-#                 # lastDataPoint[username] = dataPoint
-#             except:
-#                 output += ','
-#                 # output += f"{lastDataPoint[username]},"
-#         output = output[:-1] + "\n"
-
-#     outputFile.write(output)
-
-
-import json
-
-with open("out.json", "w") as jsontemp:
-    json = json.dumps(results, default=str)
-    jsontemp.write(json)
+plot = dataTable.plot(title=f'Speedrun {SPEEDRUN_NO}: {TITLE}', ylabel=TITLE, xlabel="Timestamp", figsize=(8,5))
+plot.legend(loc="best")
+plot.grid(linewidth=0.25)
+fig = plot.get_figure()
+fig.savefig("output.png")
+print(TITLE)

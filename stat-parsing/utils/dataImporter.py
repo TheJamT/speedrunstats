@@ -6,7 +6,7 @@ from pprint import pprint
 
 client = MongoClient("mongodb://localhost")
 
-DATE = '080421' #ddmmyy
+DATE = '170421' #ddmmyy
 
 dbName = f"speedrun-{DATE}"
 folderName = f'./stats/{DATE}/'
