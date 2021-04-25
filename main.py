@@ -39,6 +39,14 @@ STATS_TO_GRAPH = [
     },{
         "category": "mined",
         "title": "Blocks Mined"
+    },{
+        "category": "custom",
+        "stat": "sprint_one_cm",
+        "title": "Distance Sprinted (cm)"
+    }, {
+        "category": "custom",
+        "stat": "jump",
+        "title": "Number of Jumps"
     }
 ]
 
