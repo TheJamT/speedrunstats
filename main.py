@@ -16,9 +16,10 @@ from watchdog.events import PatternMatchingEventHandler
 
 
 SPEEDRUN_DATE_FORMATTED = datetime.now().strftime("%d/%m/%Y")
-MINECRAFT_DIRECTORY = '/minecraft'
+MINECRAFT_DIRECTORY = os.environ.get('MINECRAFT_DIRECTORY', '/minecraft')
+print(MINECRAFT_DIRECTORY)
 DATE = datetime.now().strftime("%d%m%y")
-DISCORD_URL = '***REMOVED***'
+DISCORD_URL = os.environ['DISCORD_URL'] 
 IGNORE_SPECTATORS = []
 
 STATS_TO_GRAPH = [
